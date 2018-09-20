@@ -79,10 +79,26 @@ class User extends Model
     }
 
     /**
+     * Get the account history for the user.
+     */
+    public function accountHistories()
+    {
+        return $this->hasMany('App\Models\AccountHistory');
+    }
+
+    /**
      * Get the role that owns this user
      */
     public function role()
     {
         return $this->belongsTo('App\Models\Role');
+    }
+
+    /**
+     * Get the account record associated with the user
+     */
+    public function account()
+    {
+        return $this->hasOne('App\Models\Account');
     }
 }

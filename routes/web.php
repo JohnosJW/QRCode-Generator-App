@@ -21,12 +21,24 @@ Route::get('/home', 'HomeController@index')->name('home');
 
 Route::group(['middleware' => 'auth'], function () {
 
-    Route::resource('qrcodes', 'QrcodeController');
+    Route::resource('accounts', 'AccountController');
 
-    Route::resource('roles', 'RoleController');
+    Route::resource('accountHistories', 'AccountHistoryController');
+
+    Route::resource('qrcodes', 'QrcodeController');
 
     Route::resource('transactions', 'TransactionController');
 
     Route::resource('users', 'UserController');
 
+    Route::group(['middleware' => 'check.moderator'], function () {
+        Route::get('/users', 'UserController@index')->name('users.index');
+    });
+
+    Route::resource('roles', 'RoleController')->middleware('check.admin');
+
+//    Route::resource('users', 'UserController')->middleware('check.moderator');
+
 });
+
+Route::resource('accounts', 'AccountController');
