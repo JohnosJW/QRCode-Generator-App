@@ -13,6 +13,7 @@ use Prettus\Repository\Criteria\RequestCriteria;
 use QR_Code\QR_Code;
 use Response;
 use QRCode as QRCodeGenerator;
+use Auth;
 
 class QrcodeController extends AppBaseController
 {
@@ -32,8 +33,12 @@ class QrcodeController extends AppBaseController
      */
     public function index(Request $request)
     {
-        $this->qrcodeRepository->pushCriteria(new RequestCriteria($request));
-        $qrcodes = $this->qrcodeRepository->all();
+        if (Auth::user()->role_id < 3) {
+            $this->qrcodeRepository->pushCriteria(new RequestCriteria($request));
+            $qrcodes = $this->qrcodeRepository->all();
+        } else {
+            $qrcodes = Qrcode::where('user_id', Auth::user()->id)->get();
+        }
 
         return view('qrcodes.index')
             ->with('qrcodes', $qrcodes);
@@ -93,7 +98,7 @@ class QrcodeController extends AppBaseController
      *
      * @return Response
      */
-    public function show($id)
+    public function show($id = null)
     {
         $qrcode = $this->qrcodeRepository->findWithoutFail($id);
 

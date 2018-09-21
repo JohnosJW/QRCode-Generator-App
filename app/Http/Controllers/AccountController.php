@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\CreateAccountRequest;
 use App\Http\Requests\UpdateAccountRequest;
+use App\Models\Account;
+use App\Models\AccountHistory;
 use App\Repositories\AccountRepository;
 use App\Http\Controllers\AppBaseController;
 use Illuminate\Http\Request;
 use Flash;
 use Prettus\Repository\Criteria\RequestCriteria;
 use Response;
+use Auth;
 
 class AccountController extends AppBaseController
 {
@@ -34,6 +37,68 @@ class AccountController extends AppBaseController
 
         return view('accounts.index')
             ->with('accounts', $accounts);
+    }
+
+    public function applyForPayout(Request $request)
+    {
+        $account = $this->accountRepository->findWithoutFail($request->input('apply_for_payout'));
+
+        if (empty($account)) {
+            Flash::error('Account not found');
+            return redirect()->back();
+        }
+
+        if (Auth::user()->id != $account->user_id) {
+            Flash::error('You cannot perform this operation on an account that is not you');
+            return redirect()->back();
+        }
+
+        Account::where('id', $account->id)
+            ->update([
+                'applied_for_payout' => 1,
+                'paid' => 0,
+                'last_date_paid' => date()
+            ]);
+
+        AccountHistory::create([
+            'user_id' => Auth::user()->id,
+            'account_id' => $account->id,
+            'message' => 'Payout request initiated by account own'
+        ]);
+
+        Flash::success('Application submit successfully');
+        return redirect()->back();
+    }
+
+    public function markAsPaid(Request $request)
+    {
+        $account = $this->accountRepository->findWithoutFail($request->input('mark_as_paid'));
+
+        if (empty($account)) {
+            Flash::error('Account not found');
+            return redirect()->back();
+        }
+
+        if (Auth::user()->role_id > 2) {
+            Flash::error('You cannot perform this operation if you are not admin');
+            return redirect()->back();
+        }
+
+        Account::where('id', $account->id)
+            ->update([
+                'applied_for_payout' => 0,
+                'paid' => 1,
+                'last_date_paid' => date()
+            ]);
+
+        AccountHistory::create([
+            'user_id' => $account->user_id,
+            'account_id' => $account->id,
+            'message' => 'Payment completed by admin:' . Auth::user()->id
+        ]);
+
+        Flash::success('Account marked as paid successfully');
+        return redirect()->back();
     }
 
     /**
@@ -71,9 +136,13 @@ class AccountController extends AppBaseController
      *
      * @return Response
      */
-    public function show($id)
+    public function show($id = null)
     {
-        $account = $this->accountRepository->findWithoutFail($id);
+        if (!isset($id)) {
+            $account = Account::where('user_id', Auth::user()->id)->first();
+        } else {
+            $account = $this->accountRepository->findWithoutFail($id);
+        }
 
         if (empty($account)) {
             Flash::error('Account not found');

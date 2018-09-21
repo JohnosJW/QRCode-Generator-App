@@ -68,12 +68,6 @@
         <p>{!! $account->bank_account !!}</p>
     </div>
 
-    <!-- Paid Field -->
-    <div class="form-group">
-        {!! Form::label('paid', 'Paid:') !!}
-        <p>{!! $account->paid !!}</p>
-    </div>
-
     <!-- Last Date Applied Field -->
     <div class="form-group">
         {!! Form::label('last_date_applied', 'Last Date Applied:') !!}
@@ -96,12 +90,6 @@
     <div class="form-group">
         {!! Form::label('other_details', 'Other Details:') !!}
         <p>{!! $account->other_details !!}</p>
-    </div>
-
-    <!-- Payment Details Field -->
-    <div class="form-group">
-        {!! Form::label('payment_details', 'Payment Details:') !!}
-        <p>{!! $account->payment_details !!}</p>
     </div>
 
 </div>
