@@ -29,7 +29,7 @@
         <hr>
     <!-- User Id Field -->
     <div class="form-group">
-        {!! Form::label('user_id', 'User Name:') !!}
+        {!! Form::label('user_id', 'User:') !!}
         <p>{!! $qrcode->user['email'] !!}</p>
     </div>
 
@@ -80,6 +80,26 @@
             <img src="{{ asset($qrcode->qrcode_path) }}">
         </p>
     </div>
+
+
+    <form role="form" method="post" action="{{ route('qrcodes.show_payment_page') }}" class="col-md-6">
+        @if(Auth::guest())
+            <div class="form-group">
+                <label for="email"> Enter your email:</label>
+                <input class="form-control" type="email" required name="email" id="email" placeholder="johndoe@gmail.com">
+            </div>
+        @else
+            <input type="hidden" name="qrcode_id" value="{{ $qrcode->id }}">
+            <input type="hidden" name="email" value="{{ Auth::user()->email }}">
+        @endif
+            {{ csrf_field() }}
+            <p>
+            <button class="btn btn-success btn-lg" type="submit" value="Pay Now!">
+                <i class="fa fa-plus-circle fa-lg"></i> Pay Now!
+            </button>
+        </p>
+    </form>
+
 </div>
 
 @if(!Auth::guest() && ($qrcode->user_id == Auth::user()->id || Auth::user()->role_id < 3))

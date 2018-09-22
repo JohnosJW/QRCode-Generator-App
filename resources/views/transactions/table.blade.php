@@ -16,7 +16,10 @@
             <td>{!! $transaction->user['name'] !!}</td>
             <td>{!! $transaction->payment_method !!}</td>
             <td>${!! $transaction->amount !!}</td>
-            <td>{!! $transaction->status !!}</td>
+            <td>{!! $transaction->status !!}
+                <br/>
+                <small>{{ $transaction->updated_at->format('D d, M, Y, h:i') }}</small>
+            </td>
             <td>
                 <div class='btn-group'>
                     <a href="{!! route('transactions.show', [$transaction->id]) !!}" class='btn btn-default btn-xs'><i class="glyphicon glyphicon-eye-open"></i></a>

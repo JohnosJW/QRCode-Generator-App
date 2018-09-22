@@ -10,6 +10,14 @@
     <p>${!! $transaction->amount !!}</p>
 </div>
 
+@if ($transaction->qrcode['product_url'])
+<div class="form-group">
+    <p><a href="{!! $transaction->qrcode['product_url'] !!}"
+          class="btn btn-success btn-lg"
+        > Return to merchant site</a></p>
+</div>
+@endif
+
 <!-- User Id Field -->
 <div class="form-group">
     {!! Form::label('user_id', 'Buyer name:') !!}

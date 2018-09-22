@@ -5,10 +5,13 @@ namespace App\Http\Controllers;
 use App\Http\Requests\CreateQrcodeRequest;
 use App\Http\Requests\UpdateQrcodeRequest;
 use App\Models\Qrcode;
+use App\Models\Transaction;
+use App\Models\User;
 use App\Repositories\QrcodeRepository;
 use App\Http\Controllers\AppBaseController;
 use Illuminate\Http\Request;
 use Flash;
+use Illuminate\Support\Facades\Hash;
 use Prettus\Repository\Criteria\RequestCriteria;
 use QR_Code\QR_Code;
 use Response;
@@ -42,6 +45,41 @@ class QrcodeController extends AppBaseController
 
         return view('qrcodes.index')
             ->with('qrcodes', $qrcodes);
+    }
+
+    /**
+     * @param Request $request
+     */
+    public function showPaymentPage(Request $request)
+    {
+       $inputs = $request->all();
+
+       $user = User::where('email', $inputs['email'])->first();
+
+       if (empty($user)) {
+           $user = User::create([
+               'name' => $inputs['email'],
+               'email' => $inputs['email'],
+               'password' => Hash::make($inputs['email'])
+           ]);
+       }
+
+       $qrcode = Qrcode::where('id', $inputs['qrcode_id'])->first();
+
+       $transaction = Transaction::create([
+           'user_id' => $user->id,
+           'qrcode_id' => $qrcode->id,
+           'status' => 'initiated',
+           'qrcode_owner_id' => $qrcode->user_id,
+           'payment_method' => 'paystack/card',
+           'amount' => $qrcode->amount
+       ]);
+
+       return view('qrcodes.paystack-form', [
+           'qrcode' => $qrcode,
+           'transaction' => $transaction,
+           'user' => $user
+       ]);
     }
 
     /**
