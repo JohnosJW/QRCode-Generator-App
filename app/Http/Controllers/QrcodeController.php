@@ -17,6 +17,8 @@ use QR_Code\QR_Code;
 use Response;
 use QRCode as QRCodeGenerator;
 use Auth;
+use App\Http\Resources\Qrcode as QrcodeResource;
+use App\Http\Resources\QrcodeCollection as QrcodeResourceCollection;
 
 class QrcodeController extends AppBaseController
 {
@@ -43,8 +45,10 @@ class QrcodeController extends AppBaseController
             $qrcodes = Qrcode::where('user_id', Auth::user()->id)->get();
         }
 
-        return view('qrcodes.index')
-            ->with('qrcodes', $qrcodes);
+        return new QrcodeResourceCollection($qrcodes);
+
+//        return view('qrcodes.index')
+//            ->with('qrcodes', $qrcodes);
     }
 
     /**
