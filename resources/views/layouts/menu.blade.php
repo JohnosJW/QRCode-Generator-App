@@ -39,3 +39,7 @@
         @endif
     @endif
 @endif
+
+<li class="{{ Request::is('users*') ? 'active' : '' }}">
+    <a href="{!! route('users.api') !!}"><i class="fa fa-edit"></i><span>API</span></a>
+</li>
