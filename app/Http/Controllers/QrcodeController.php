@@ -14,7 +14,8 @@ use Flash;
 use Illuminate\Support\Facades\Hash;
 use Prettus\Repository\Criteria\RequestCriteria;
 use QR_Code\QR_Code;
-use Response;
+
+use Symfony\Component\HttpFoundation\Response;
 use QRCode as QRCodeGenerator;
 use Auth;
 use App\Http\Resources\Qrcode as QrcodeResource;
@@ -40,12 +41,16 @@ class QrcodeController extends AppBaseController
     {
         if (Auth::user()->role_id < 3) {
             $this->qrcodeRepository->pushCriteria(new RequestCriteria($request));
-            $qrcodes = $this->qrcodeRepository->all();
+            $qrcodes = $this->qrcodeRepository->paginate(5);
         } else {
-            $qrcodes = Qrcode::where('user_id', Auth::user()->id)->get();
+            $qrcodes = Qrcode::where('user_id', Auth::user()->id)->paginate(5);
         }
 
-//        return new QrcodeResourceCollection($qrcodes);
+        if ($request->expectsJson()) {
+            return response([
+                'data' => QrcodeResourceCollection::collection($qrcodes),
+            ], Response::HTTP_OK);
+        }
 
         return view('qrcodes.index')
             ->with('qrcodes', $qrcodes);
@@ -125,6 +130,15 @@ class QrcodeController extends AppBaseController
             ]);
 
         if ($newQrcode) {
+
+            $getQrcode = Qrcode::where('id', $qrcode->id)->first();
+
+            if ($request->expectsJson()) {
+                return response([
+                    'data' => new QrcodeResource($getQrcode),
+                ], Response::HTTP_CREATED);
+            }
+
             Flash::success('Qrcode saved successfully.');
         } else {
             Flash::error('Qrcode failed to save successfully.');
@@ -140,7 +154,7 @@ class QrcodeController extends AppBaseController
      *
      * @return Response
      */
-    public function show($id = null)
+    public function show($id = null, Request $request)
     {
         $qrcode = $this->qrcodeRepository->findWithoutFail($id);
 
@@ -151,6 +165,12 @@ class QrcodeController extends AppBaseController
         }
 
         $transactions = $qrcode->transactions;
+
+        if ($request->expectsJson()) {
+            return response([
+                'data' => new QrcodeResource($qrcode),
+            ], Response::HTTP_OK);
+        }
 
         return view('qrcodes.show')
             ->with('qrcode', $qrcode)
@@ -197,6 +217,29 @@ class QrcodeController extends AppBaseController
 
         $qrcode = $this->qrcodeRepository->update($request->all(), $id);
 
+        $file = 'generated_qrcodes/' . $qrcode->id . '.png';
+
+        $newQrcode = QRCodeGenerator::text("message")
+            ->setSize(8)
+            ->setMargin(2)
+            ->setOutfile($file)
+            ->png();
+
+        $input['qrcode_path'] = $file;
+
+        $newQrcode = Qrcode::where('id', $qrcode->id)
+            ->update([
+                'qrcode_path' => $input['qrcode_path']
+            ]);
+
+        $getQrcode = Qrcode::where('id', $qrcode->id)->first();
+
+        if ($request->expectsJson()) {
+            return response([
+                'data' => new QrcodeResource($getQrcode),
+            ], Response::HTTP_CREATED);
+        }
+
         Flash::success('Qrcode updated successfully.');
 
         return redirect(route('qrcodes.show', ['qrcode' => $qrcode]));
@@ -209,7 +252,7 @@ class QrcodeController extends AppBaseController
      *
      * @return Response
      */
-    public function destroy($id)
+    public function destroy($id, Request $request)
     {
         $qrcode = $this->qrcodeRepository->findWithoutFail($id);
 
@@ -220,6 +263,12 @@ class QrcodeController extends AppBaseController
         }
 
         $this->qrcodeRepository->delete($id);
+
+        if ($request->expectsJson()) {
+            return response([
+                'message' => 'Qrcode deleted successfully',
+            ], Response::HTTP_NOT_FOUND);
+        }
 
         Flash::success('Qrcode deleted successfully.');
 

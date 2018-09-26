@@ -3,9 +3,9 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
-use App\Models\Qrcode;
+use App\Models\Account;
 
-class UpdateQrcodeRequest extends FormRequest
+class CreateAccountRequest extends FormRequest
 {
 
     /**
@@ -25,12 +25,6 @@ class UpdateQrcodeRequest extends FormRequest
      */
     public function rules()
     {
-        return [
-            'product_name' => 'required|max:255',
-            'user_id' => 'required',
-            'company_name' => 'required|max:255',
-            'callback_url' => 'required',
-            'amount' => 'required',
-        ];
+        return Account::$rules;
     }
 }
