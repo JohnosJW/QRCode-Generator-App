@@ -86,7 +86,8 @@
         @if(Auth::guest())
             <div class="form-group">
                 <label for="email"> Enter your email:</label>
-                <input class="form-control" type="email" required name="email" id="email" placeholder="johndoe@gmail.com">
+                <input class="form-control" type="email" required name="email" id="email" placeholder="johnosjw@gmail.com">
+                <input type="hidden" name="qrcode_id" value="{{ $qrcode->id }}">
             </div>
         @else
             <input type="hidden" name="qrcode_id" value="{{ $qrcode->id }}">
